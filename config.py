@@ -18,6 +18,7 @@ YOUR_BIRTHDAY = "2026-03-05"          # твой ДР
 MORNING_TIME = "09:00"
 DAY_COMPLIMENT_TIME = "12:00"
 NIGHT_TIME = "22:00"
+SLEEP_TIME = "22:30"
 
 # 📁 БД
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
