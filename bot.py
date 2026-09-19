@@ -24,33 +24,23 @@ def load_db():
     try:
         if not os.path.exists(DB_FILE):
             initial = {
-                "users": [],
-                "stats": {},
-                "letters": [],
-                "thoughts": [],
-                "moments": [],
-                "secrets": [],
-                "past_letters": [],
-                "warm_used": [],
+                "users": [], "stats": {}, "letters": [], "thoughts": [],
+                "moments": [], "secrets": [], "past_letters": [], "warm_used": [],
             }
             with open(DB_FILE, "w", encoding="utf-8") as f:
                 json.dump(initial, f, ensure_ascii=False, indent=2)
             print(f"📁 Создан файл БД: {DB_FILE}")
             return initial
-
         with open(DB_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             for key in ["letters", "thoughts", "moments", "secrets", "past_letters", "warm_used"]:
                 if key not in data:
                     data[key] = []
             return data
-
     except Exception as e:
         print(f"⚠️ Ошибка загрузки БД: {e}")
-        return {
-            "users": [], "stats": {}, "letters": [], "thoughts": [],
-            "moments": [], "secrets": [], "past_letters": [], "warm_used": [],
-        }
+        return {"users": [], "stats": {}, "letters": [], "thoughts": [],
+                "moments": [], "secrets": [], "past_letters": [], "warm_used": []}
 
 
 def save_db(data):
@@ -90,15 +80,12 @@ def get_random_warm():
         db = load_db()
         used = db.get("warm_used", [])
         all_warm = msg.WARM
-
         if len(used) >= len(all_warm) * 0.8:
             used = []
-
         available = [w for w in all_warm if w not in used]
         if not available:
             available = all_warm
             used = []
-
         choice = random.choice(available)
         used.append(choice)
         db["warm_used"] = used
@@ -115,7 +102,6 @@ MUSIC_DIR = os.path.join(BASE_DIR, "music")
 
 
 def get_music_files():
-    """Возвращает список всех аудио-файлов в папке music/"""
     if not os.path.exists(MUSIC_DIR):
         os.makedirs(MUSIC_DIR)
         return []
@@ -185,25 +171,20 @@ class LetterStates(StatesGroup):
     waiting_text = State()
     waiting_date = State()
 
-
 class SecretStates(StatesGroup):
     waiting_text = State()
     waiting_password = State()
     waiting_open_password = State()
 
-
 class PastLetterStates(StatesGroup):
     waiting_text = State()
     waiting_trigger = State()
 
-
 class ThoughtStates(StatesGroup):
     waiting_text = State()
 
-
 class MomentStates(StatesGroup):
     waiting_text = State()
-
 
 class ReplyStates(StatesGroup):
     waiting_reply = State()
@@ -316,23 +297,21 @@ dp = Dispatcher()
 
 
 # ============================================================
-# СТАРТ
+# START
 # ============================================================
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
     register_user(message.from_user.id)
-
     if message.from_user.id == YOUR_ID:
         await message.answer(
             "👑 <b>Привет, хозяин!</b>\n\n"
             "📸 Отправь мне фото/видео/голосовое — я сразу перешлю ей.\n"
-            "🎵 Треки из папки music/ — можешь управлять.\n\n"
-            "Выбирай действие:",
+            "📝 Или просто напиши текст — я отправлю ей.\n"
+            "🎵 Треки из папки music/ — можешь управлять.",
             reply_markup=menu_admin(),
             parse_mode=ParseMode.HTML,
         )
         return
-
     await message.answer(
         "💕 <b>Привет, любимая!</b>\n\n"
         "Это наш маленький бот-секрет. Здесь я собрал кучу милых вещей только для тебя.\n\n"
@@ -353,12 +332,13 @@ async def cmd_menu(message: Message):
 
 
 # ============================================================
-# РОМАНТИКА
+# ОБРАБОТЧИКИ КНОПОК (ПОРЯДОК ВАЖЕН!)
 # ============================================================
+
+# ---------- РОМАНТИКА ----------
 @dp.message(F.text == "💕 Романтика")
 async def open_romance(message: Message):
     await message.answer("💕 Что хочешь?", reply_markup=menu_romance())
-
 
 @dp.message(Command("love"))
 @dp.message(F.text == "💕 Комплимент")
@@ -366,47 +346,38 @@ async def m_compliment(message: Message):
     add_stat(message.from_user.id, "compliment")
     await message.answer(random.choice(msg.COMPLIMENTS))
 
-
 @dp.message(F.text == "🤗 Тёплое")
 async def m_warm(message: Message):
     add_stat(message.from_user.id, "warm")
     await message.answer(get_random_warm())
 
-
 @dp.message(F.text == "💐 По имени")
 async def m_name(message: Message):
     await message.answer("💐 Напиши своё имя — и я скажу, какая ты 💕")
-
 
 @dp.message(F.text == "🌸 Стих")
 async def m_poem(message: Message):
     await message.answer(random.choice(msg.POEMS), parse_mode=ParseMode.HTML)
 
-
 @dp.message(F.text == "🌹 Почему люблю")
 async def m_why(message: Message):
     await message.answer("🌹 " + random.choice(msg.REASONS_LOVE))
-
 
 @dp.message(F.text == "💗 Что я люблю")
 async def m_ilove(message: Message):
     await message.answer(random.choice(msg.ABOUT_YOU))
 
-
 @dp.message(F.text == "💋 Флирт")
 async def m_flirt(message: Message):
     await message.answer(random.choice(msg.FLIRT))
-
 
 @dp.message(F.text == "🌅 Цитата")
 async def m_quote(message: Message):
     await message.answer(random.choice(msg.QUOTES))
 
-
 @dp.message(F.text == "🤗 Забота")
 async def m_care(message: Message):
     await message.answer(random.choice(msg.CARE))
-
 
 @dp.message(F.text == "💌 Письмо")
 async def m_letter(message: Message):
@@ -421,16 +392,13 @@ async def m_letter(message: Message):
     )
     await message.answer(text, parse_mode=ParseMode.HTML)
 
-
 @dp.message(F.text == "💍 Наше будущее")
 async def m_future(message: Message):
     await message.answer(random.choice(msg.FUTURE))
 
-
 @dp.message(F.text == "❤️ Люблю тебя")
 async def m_love_you(message: Message):
     await message.answer(random.choice(msg.LOVE_YOU))
-
 
 @dp.message(Command("miss"))
 @dp.message(F.text == "💭 Скучаю")
@@ -443,67 +411,53 @@ async def m_miss(message: Message):
         print(f"Не удалось уведомить: {e}")
 
 
-# ============================================================
-# СЮРПРИЗЫ
-# ============================================================
+# ---------- СЮРПРИЗЫ ----------
 @dp.message(F.text == "🎁 Сюрпризы")
 async def open_surprise(message: Message):
     await message.answer("🎁 Что хочешь?", reply_markup=menu_surprise())
-
 
 @dp.message(Command("surprise"))
 @dp.message(F.text == "🎁 Сюрприз")
 async def m_surprise(message: Message):
     await message.answer(random.choice(msg.SURPRISES))
 
-
 @dp.message(F.text == "🎲 Рулетка")
 async def m_roulette(message: Message):
     await message.answer("🎲 Выпало:\n\n" + random.choice(msg.DATES))
-
 
 @dp.message(F.text == "🃏 Карта любви")
 async def m_card(message: Message):
     await message.answer(random.choice(msg.LOVE_CARDS))
 
-
 @dp.message(F.text == "🎨 Открытка")
 async def m_postcard(message: Message):
     await message.answer(random.choice(msg.CARDS), parse_mode=ParseMode.HTML)
-
 
 @dp.message(F.text == "😄 Анекдот")
 async def m_joke(message: Message):
     await message.answer(random.choice(msg.JOKES))
 
-
 @dp.message(F.text == "🎁 Подарок")
 async def m_gift(message: Message):
     await message.answer("🎁 Идея подарка:\n\n" + random.choice(msg.GIFTS))
-
 
 @dp.message(F.text == "🎭 Правда/Действие")
 async def m_truth(message: Message):
     await message.answer(random.choice(msg.TRUTH_OR_DARE), parse_mode=ParseMode.HTML)
 
 
-# ============================================================
-# ОСОБОЕ
-# ============================================================
+# ---------- ОСОБОЕ ----------
 @dp.message(F.text == "✨ Особое")
 async def open_special(message: Message):
     await message.answer("✨ Что хочешь?", reply_markup=menu_special())
-
 
 @dp.message(F.text == "💌 Мини-письмо")
 async def m_mini_letter(message: Message):
     await message.answer(random.choice(msg.LETTERS_ASCII))
 
-
 @dp.message(F.text == "🌙 Сон дня")
 async def m_sleep(message: Message):
     await message.answer(random.choice(msg.SLEEPS))
-
 
 @dp.message(F.text == "💭 О чём думаю")
 async def m_thoughts(message: Message):
@@ -514,7 +468,6 @@ async def m_thoughts(message: Message):
         return
     await message.answer("💭 " + random.choice(thoughts))
 
-
 @dp.message(F.text == "🎯 Любимый момент")
 async def m_moments(message: Message):
     db = load_db()
@@ -524,58 +477,44 @@ async def m_moments(message: Message):
         return
     await message.answer("🎯 " + random.choice(moments))
 
-
 @dp.message(F.text == "🔐 Секретка")
 async def m_secret(message: Message, state: FSMContext):
     if message.from_user.id == YOUR_ID:
         await message.answer("👑 Ты — хозяин. Используй «🔐 Создать секретку» в админ-меню.")
         return
-
     db = load_db()
     secrets = db.get("secrets", [])
     if not secrets:
         await message.answer("🔐 Пока нет секретов. Но скоро будут 💕")
         return
-
     await message.answer("🔐 Введи пароль:")
     await state.set_state(SecretStates.waiting_open_password)
-
 
 @dp.message(SecretStates.waiting_open_password)
 async def secret_open_password(message: Message, state: FSMContext):
     password = message.text.strip().lower()
     db = load_db()
     secrets = db.get("secrets", [])
-
     found = None
     for s in secrets:
         if s.get("password", "").lower() == password:
             found = s
             break
-
     if found:
         await message.answer(f"🔓 <b>Секрет открыт!</b>\n\n{found['text']}", parse_mode=ParseMode.HTML)
     else:
         await message.answer("❌ Неверный пароль. Попробуй ещё раз 💕")
-
     await state.clear()
 
 
-# ============================================================
-# МУЗЫКА
-# ============================================================
+# ---------- МУЗЫКА ----------
 @dp.message(F.text == "🎵 Музыка")
 async def open_music(message: Message):
     files = get_music_files()
     if not files:
-        await message.answer(
-            "🎵 Пока нет треков.\n\n"
-            "Админ может добавить их в папку <code>music/</code>.",
-            parse_mode=ParseMode.HTML,
-        )
+        await message.answer("🎵 Пока нет треков. Но скоро будут 💕")
         return
     await message.answer(f"🎵 Треков в плейлисте: {len(files)}\n\nЧто хочешь?", reply_markup=menu_music())
-
 
 @dp.message(F.text == "🎵 Случайный трек")
 async def m_random_track(message: Message):
@@ -583,10 +522,8 @@ async def m_random_track(message: Message):
     if not files:
         await message.answer("🎵 Пока треков нет. Но скоро будут 💕")
         return
-
     track_path = random.choice(files)
     track_name = os.path.basename(track_path).rsplit(".", 1)[0]
-
     try:
         audio = FSInputFile(track_path)
         await message.answer_audio(
@@ -599,14 +536,12 @@ async def m_random_track(message: Message):
         print(f"Ошибка отправки трека: {e}")
         await message.answer("🎵 Не смог отправить трек 😔")
 
-
 @dp.message(F.text == "🎼 Плейлист")
 async def m_playlist(message: Message):
     files = get_music_files()
     if not files:
         await message.answer("🎼 Плейлист пуст.")
         return
-
     text = "🎼 <b>Наш плейлист:</b>\n\n"
     for i, f in enumerate(files, 1):
         name = os.path.basename(f).rsplit(".", 1)[0]
@@ -615,85 +550,10 @@ async def m_playlist(message: Message):
     await message.answer(text, parse_mode=ParseMode.HTML)
 
 
-# ============================================================
-# ГОЛОСОВЫЕ / ФОТО / ВИДЕО — СРАЗУ ЕЙ (от тебя)
-# ============================================================
-@dp.message(F.voice)
-async def forward_voice(message: Message):
-    """Ты отправляешь голосовое → сразу ей"""
-    if message.from_user.id != YOUR_ID:
-        await message.answer("💭 Голосовое получено! Я передам 💕")
-        return
-
-    if HER_ID == 0:
-        await message.answer("⚠️ Сначала впиши HER_ID в config.py")
-        return
-
-    try:
-        await bot.send_voice(
-            chat_id=HER_ID,
-            voice=message.voice.file_id,
-            caption="🎙️ Голосовое для тебя 💕",
-        )
-        await message.answer("✅ Голосовое отправлено ей! ❤️")
-    except Exception as e:
-        await message.answer(f"❌ Ошибка: {e}")
-
-
-@dp.message(F.video_note)
-async def forward_video_note(message: Message):
-    """Кружочки → сразу ей"""
-    if message.from_user.id != YOUR_ID:
-        return
-    if HER_ID == 0:
-        await message.answer("⚠️ Сначала впиши HER_ID")
-        return
-    try:
-        await bot.send_video_note(HER_ID, video_note=message.video_note.file_id)
-        await message.answer("✅ Кружочек отправлен! 💕")
-    except Exception as e:
-        await message.answer(f"❌ {e}")
-
-
-@dp.message(F.video)
-async def forward_video(message: Message):
-    """Видео → сразу ей"""
-    if message.from_user.id != YOUR_ID:
-        return
-    if HER_ID == 0:
-        await message.answer("⚠️ Сначала впиши HER_ID")
-        return
-    try:
-        caption = message.caption or "🎥 Для тебя 💕"
-        await bot.send_video(HER_ID, video=message.video.file_id, caption=caption)
-        await message.answer("✅ Видео отправлено! 💕")
-    except Exception as e:
-        await message.answer(f"❌ {e}")
-
-
-@dp.message(F.photo)
-async def forward_photo(message: Message):
-    """Фото → сразу ей"""
-    if message.from_user.id != YOUR_ID:
-        return
-    if HER_ID == 0:
-        await message.answer("⚠️ Сначала впиши HER_ID")
-        return
-    try:
-        caption = message.caption or "📸 Для тебя 💕"
-        await bot.send_photo(HER_ID, photo=message.photo[-1].file_id, caption=caption)
-        await message.answer("✅ Фото отправлено! 💕")
-    except Exception as e:
-        await message.answer(f"❌ {e}")
-        
-
-# ============================================================
-# РАЗВЛЕЧЕНИЯ
-# ============================================================
+# ---------- РАЗВЛЕЧЕНИЯ ----------
 @dp.message(F.text == "🎬 Развлечения")
 async def open_fun(message: Message):
     await message.answer("🎬 Что хочешь?", reply_markup=menu_fun())
-
 
 @dp.message(Command("quiz"))
 @dp.message(F.text == "🎯 Викторина")
@@ -706,34 +566,27 @@ async def m_quiz(message: Message):
     text += f"\nПравильный ответ: <b>{q['correct']}</b>"
     await message.answer(text, parse_mode=ParseMode.HTML)
 
-
 @dp.message(F.text == "🎬 Фильм")
 async def m_movie(message: Message):
     await message.answer(random.choice(msg.MOVIES))
-
 
 @dp.message(F.text == "📺 Сериал")
 async def m_series(message: Message):
     await message.answer(random.choice(msg.SERIES))
 
-
 @dp.message(F.text == "📚 Книга")
 async def m_book(message: Message):
     await message.answer(random.choice(msg.BOOKS))
-
 
 @dp.message(F.text == "🍽️ Приготовить")
 async def m_dinner(message: Message):
     await message.answer(random.choice(msg.DINNER_IDEAS))
 
 
-# ============================================================
-# ДАТЫ
-# ============================================================
+# ---------- ДАТЫ ----------
 @dp.message(F.text == "📅 Даты")
 async def open_dates(message: Message):
     await message.answer("📅 Что хочешь?", reply_markup=menu_dates())
-
 
 @dp.message(Command("days"))
 @dp.message(F.text == "📅 Дней вместе")
@@ -746,7 +599,6 @@ async def m_days(message: Message):
         parse_mode=ParseMode.HTML,
     )
 
-
 @dp.message(F.text == "💕 Всё время")
 async def m_alltime(message: Message):
     await message.answer(
@@ -758,7 +610,6 @@ async def m_alltime(message: Message):
         parse_mode=ParseMode.HTML,
     )
 
-
 @dp.message(F.text == "⏰ До вечера")
 async def m_countdown(message: Message):
     left = days_to_event()
@@ -766,7 +617,6 @@ async def m_countdown(message: Message):
         f"🍷 До нашего романтического вечера осталось:\n\n<b>{left}</b>\n\nГотовься, будет волшебно 💕",
         parse_mode=ParseMode.HTML,
     )
-
 
 @dp.message(F.text == "🎂 До ДР")
 async def m_bday(message: Message):
@@ -777,13 +627,10 @@ async def m_bday(message: Message):
     )
 
 
-# ============================================================
-# БЫТ
-# ============================================================
+# ---------- БЫТ ----------
 @dp.message(F.text == "🍽️ Быт")
 async def open_life(message: Message):
     await message.answer("🍽️ Что хочешь?", reply_markup=menu_life())
-
 
 @dp.message(Command("hug"))
 @dp.message(F.text == "🤗 Обнимашка")
@@ -795,7 +642,6 @@ async def m_hug(message: Message):
     except Exception as e:
         print(f"Не удалось уведомить: {e}")
 
-
 @dp.message(F.text == "😘 Поцелуй")
 async def m_kiss(message: Message):
     await message.answer("😘 Целую тебя в лобик! Самый нежный поцелуй 💕")
@@ -803,7 +649,6 @@ async def m_kiss(message: Message):
         await bot.send_message(YOUR_ID, "😘 Она послала тебе поцелуй! 💕")
     except Exception as e:
         print(f"Не удалось уведомить: {e}")
-
 
 @dp.message(F.text == "📞 Позвони")
 async def m_call(message: Message):
@@ -813,21 +658,17 @@ async def m_call(message: Message):
     except Exception as e:
         print(f"Не удалось уведомить: {e}")
 
-
 @dp.message(F.text == "😴 Поспать")
 async def m_sleep_life(message: Message):
     await message.answer("😴 Иди поспи, любимая. Мир подождёт 💕")
-
 
 @dp.message(F.text == "💧 Водичка")
 async def m_water(message: Message):
     await message.answer("💧 Выпей водички, солнышко! Это важно 💕")
 
-
 @dp.message(F.text == "🍽️ Поела?")
 async def m_food(message: Message):
     await message.answer("🍽️ Ты поела? Если нет — иди поешь, я волнуюсь 💕")
-
 
 @dp.message(F.text == "💪 Мотивашка")
 async def m_motivation(message: Message):
@@ -835,13 +676,10 @@ async def m_motivation(message: Message):
     await message.answer(random.choice(all_moods))
 
 
-# ============================================================
-# ИНФО
-# ============================================================
+# ---------- ИНФО ----------
 @dp.message(F.text == "📊 Инфо")
 async def open_info(message: Message):
     await message.answer("📊 Что хочешь?", reply_markup=menu_info())
-
 
 @dp.message(F.text == "📊 Статистика")
 async def m_stats(message: Message):
@@ -852,11 +690,8 @@ async def m_stats(message: Message):
         return
     text = "📊 <b>Твоя статистика:</b>\n\n"
     names = {
-        "compliment": "💕 Комплименты",
-        "hug": "🤗 Обнимашки",
-        "miss": "💭 Скучала",
-        "quiz": "🎯 Викторина",
-        "warm": "🤗 Тёплые",
+        "compliment": "💕 Комплименты", "hug": "🤗 Обнимашки",
+        "miss": "💭 Скучала", "quiz": "🎯 Викторина", "warm": "🤗 Тёплые",
     }
     total = 0
     for k, v in user_stats.items():
@@ -865,118 +700,94 @@ async def m_stats(message: Message):
     text += f"\n💖 Всего: <b>{total}</b> действий"
     await message.answer(text, parse_mode=ParseMode.HTML)
 
-
 @dp.message(F.text == "🏆 Достижения")
 async def m_achieve(message: Message):
     await message.answer(random.choice(msg.ACHIEVEMENTS))
-
 
 @dp.message(F.text == "📖 О боте")
 async def m_about(message: Message):
     await message.answer(
         "📖 <b>О боте</b>\n\n"
         "Этот бот сделан с любовью специально для тебя 💕\n\n"
-        "Он умеет очень много:\n"
-        "• говорить комплименты\n"
-        "• присылать тёплые сообщения\n"
-        "• стихи, цитаты, флирт\n"
-        "• считать сколько мы вместе\n"
-        "• предлагать идеи свиданий\n"
-        "• заботиться о тебе\n"
-        "• хранить секреты под паролем\n"
-        "• присылать сны перед сном\n"
-        "• отправлять треки\n"
-        "• и ещё много всего!\n\n"
+        "Он умеет: комплименты, тёплые, стихи, цитаты, флирт, "
+        "секретки, сны, музыку, заботу и много всего!\n\n"
         "Исследуй все кнопки 💗",
         parse_mode=ParseMode.HTML,
     )
 
 
-# ============================================================
-# ЗЕРКАЛО — перехват сообщений
-# ============================================================
-@dp.message(F.text)
-async def handle_her_messages(message: Message, state: FSMContext):
-    """Обрабатывает все текстовые сообщения, не попавшие под кнопки"""
-
-    # если это ты — показываем админ-меню
-    if message.from_user.id == YOUR_ID:
-        text = message.text.strip()
-        if 2 <= len(text) <= 20 and text.replace(" ", "").isalpha():
-            await message.answer(name_compliment(text), parse_mode=ParseMode.HTML)
-            return
-        await message.answer("👑 Жми кнопки админ-меню 👇", reply_markup=menu_admin())
+# ---------- ГОЛОСОВЫЕ / ФОТО / ВИДЕО ----------
+@dp.message(F.voice)
+async def forward_voice(message: Message):
+    if message.from_user.id != YOUR_ID:
+        await message.answer("💭 Голосовое получено! Я передам 💕")
         return
-
-    # это она — зеркало
-    add_stat(message.from_user.id, "messages")
+    if HER_ID == 0:
+        await message.answer("⚠️ Сначала впиши HER_ID в config.py")
+        return
     try:
-        keyboard = ReplyKeyboardMarkup(
-            keyboard=[[KeyboardButton(text="✍️ Ответить")]],
-            resize_keyboard=True,
-        )
-        await bot.send_message(
-            YOUR_ID,
-            f"💌 <b>Она написала:</b>\n\n{message.text}\n\n"
-            f"Жми «✍️ Ответить» чтобы ответить ей от твоего имени.",
-            reply_markup=keyboard,
-            parse_mode=ParseMode.HTML,
-        )
-        await message.answer("💭 Я передал ему. Он скоро ответит 💕")
+        await bot.send_voice(HER_ID, voice=message.voice.file_id, caption="🎙️ Голосовое для тебя 💕")
+        await message.answer("✅ Голосовое отправлено ей! ❤️")
     except Exception as e:
-        print(f"Ошибка зеркала: {e}")
-        await message.answer("Не понял 🤔 Жми кнопки 👇", reply_markup=main_menu())
+        await message.answer(f"❌ Ошибка: {e}")
 
-
-# ============================================================
-# ЗЕРКАЛО — ответ ей через бота
-# ============================================================
-@dp.message(F.text == "✍️ Ответить")
-async def m_reply_start(message: Message, state: FSMContext):
+@dp.message(F.video_note)
+async def forward_video_note(message: Message):
     if message.from_user.id != YOUR_ID:
         return
-    await message.answer("✍️ Напиши текст — я отправлю ей:")
-    await state.set_state(ReplyStates.waiting_reply)
+    if HER_ID == 0:
+        await message.answer("⚠️ Сначала впиши HER_ID")
+        return
+    try:
+        await bot.send_video_note(HER_ID, video_note=message.video_note.file_id)
+        await message.answer("✅ Кружочек отправлен! 💕")
+    except Exception as e:
+        await message.answer(f"❌ {e}")
 
-
-@dp.message(ReplyStates.waiting_reply)
-async def m_reply_send(message: Message, state: FSMContext):
+@dp.message(F.video)
+async def forward_video(message: Message):
     if message.from_user.id != YOUR_ID:
         return
-
+    if HER_ID == 0:
+        await message.answer("⚠️ Сначала впиши HER_ID")
+        return
     try:
-        await bot.send_message(HER_ID, f"💌 {message.text}")
-        await message.answer("✅ Отправлено! ❤️", reply_markup=menu_admin())
+        caption = message.caption or "🎥 Для тебя 💕"
+        await bot.send_video(HER_ID, video=message.video.file_id, caption=caption)
+        await message.answer("✅ Видео отправлено! 💕")
     except Exception as e:
-        await message.answer(f"❌ Не отправилось: {e}")
+        await message.answer(f"❌ {e}")
 
-    await state.clear()
+@dp.message(F.photo)
+async def forward_photo(message: Message):
+    if message.from_user.id != YOUR_ID:
+        return
+    if HER_ID == 0:
+        await message.answer("⚠️ Сначала впиши HER_ID")
+        return
+    try:
+        caption = message.caption or "📸 Для тебя 💕"
+        await bot.send_photo(HER_ID, photo=message.photo[-1].file_id, caption=caption)
+        await message.answer("✅ Фото отправлено! 💕")
+    except Exception as e:
+        await message.answer(f"❌ {e}")
 
 
-# ============================================================
-# АДМИН: ОТЛОЖЕННОЕ ПИСЬМО
-# ============================================================
+# ---------- АДМИН-КНОПКИ ----------
 @dp.message(F.text == "✍️ Написать письмо")
 async def admin_letter_start(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
         return
-    await message.answer("✍️ Напиши текст письма. Оно отправится ей в назначенный день.")
+    await message.answer("✍️ Напиши текст письма.")
     await state.set_state(LetterStates.waiting_text)
-
 
 @dp.message(LetterStates.waiting_text)
 async def admin_letter_text(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
         return
     await state.update_data(text=message.text)
-    await message.answer(
-        "📅 Когда отправить?\n\n"
-        "Формат: <b>ГГГГ-ММ-ДД ЧЧ:ММ</b>\n"
-        "Например: <code>2026-12-31 09:00</code>",
-        parse_mode=ParseMode.HTML,
-    )
+    await message.answer("📅 Когда отправить?\n\nФормат: <b>ГГГГ-ММ-ДД ЧЧ:ММ</b>\nНапример: <code>2026-12-31 09:00</code>", parse_mode=ParseMode.HTML)
     await state.set_state(LetterStates.waiting_date)
-
 
 @dp.message(LetterStates.waiting_date)
 async def admin_letter_date(message: Message, state: FSMContext):
@@ -987,19 +798,12 @@ async def admin_letter_date(message: Message, state: FSMContext):
     except ValueError:
         await message.answer("❌ Неверный формат. <code>2026-12-31 09:00</code>", parse_mode=ParseMode.HTML)
         return
-
     data = await state.get_data()
     db = load_db()
     db["letters"].append({"text": data["text"], "send_date": message.text.strip(), "sent": False})
     save_db(db)
-
-    await message.answer(
-        f"✅ Письмо сохранено!\n📅 Отправлю: <b>{message.text.strip()}</b>",
-        parse_mode=ParseMode.HTML,
-        reply_markup=menu_admin(),
-    )
+    await message.answer(f"✅ Письмо сохранено!\n📅 Отправлю: <b>{message.text.strip()}</b>", parse_mode=ParseMode.HTML, reply_markup=menu_admin())
     await state.clear()
-
 
 @dp.message(F.text == "📋 Мои письма")
 async def admin_letters_list(message: Message):
@@ -1017,17 +821,12 @@ async def admin_letters_list(message: Message):
         text += f"   <i>{l['text'][:50]}...</i>\n\n"
     await message.answer(text, parse_mode=ParseMode.HTML)
 
-
-# ============================================================
-# АДМИН: СЕКРЕТКА
-# ============================================================
 @dp.message(F.text == "🔐 Создать секретку")
 async def admin_secret_start(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
         return
     await message.answer("🔐 Напиши текст секретки:")
     await state.set_state(SecretStates.waiting_text)
-
 
 @dp.message(SecretStates.waiting_text)
 async def admin_secret_text(message: Message, state: FSMContext):
@@ -1037,25 +836,17 @@ async def admin_secret_text(message: Message, state: FSMContext):
     await message.answer("🔑 Придумай пароль (слово или фразу):")
     await state.set_state(SecretStates.waiting_password)
 
-
 @dp.message(SecretStates.waiting_password)
 async def admin_secret_password(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
         return
     password = message.text.strip()
     data = await state.get_data()
-
     db = load_db()
     db["secrets"].append({"text": data["text"], "password": password})
     save_db(db)
-
-    await message.answer(
-        f"✅ Секретка создана!\n🔑 Пароль: <code>{password}</code>",
-        parse_mode=ParseMode.HTML,
-        reply_markup=menu_admin(),
-    )
+    await message.answer(f"✅ Секретка создана!\n🔑 Пароль: <code>{password}</code>", parse_mode=ParseMode.HTML, reply_markup=menu_admin())
     await state.clear()
-
 
 @dp.message(F.text == "📋 Мои секретки")
 async def admin_secrets_list(message: Message):
@@ -1072,17 +863,12 @@ async def admin_secrets_list(message: Message):
         text += f"   <i>{s['text'][:60]}...</i>\n\n"
     await message.answer(text, parse_mode=ParseMode.HTML)
 
-
-# ============================================================
-# АДМИН: МЫСЛЬ
-# ============================================================
 @dp.message(F.text == "💭 Добавить мысль")
 async def admin_thought_start(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
         return
     await message.answer("💭 Напиши мысль о ней:")
     await state.set_state(ThoughtStates.waiting_text)
-
 
 @dp.message(ThoughtStates.waiting_text)
 async def admin_thought_save(message: Message, state: FSMContext):
@@ -1094,17 +880,12 @@ async def admin_thought_save(message: Message, state: FSMContext):
     await message.answer(f"✅ Мысль сохранена! Всего: {len(db['thoughts'])}", reply_markup=menu_admin())
     await state.clear()
 
-
-# ============================================================
-# АДМИН: МОМЕНТ
-# ============================================================
 @dp.message(F.text == "🎯 Добавить момент")
 async def admin_moment_start(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
         return
     await message.answer("🎯 Напиши любимый момент:")
     await state.set_state(MomentStates.waiting_text)
-
 
 @dp.message(MomentStates.waiting_text)
 async def admin_moment_save(message: Message, state: FSMContext):
@@ -1116,10 +897,6 @@ async def admin_moment_save(message: Message, state: FSMContext):
     await message.answer(f"✅ Момент сохранён! Всего: {len(db['moments'])}", reply_markup=menu_admin())
     await state.clear()
 
-
-# ============================================================
-# АДМИН: ПИСЬМО ИЗ ПРОШЛОГО
-# ============================================================
 @dp.message(F.text == "💌 Письмо из прошлого")
 async def admin_past_letter_start(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
@@ -1127,19 +904,13 @@ async def admin_past_letter_start(message: Message, state: FSMContext):
     await message.answer("💌 Напиши письмо, которое бот отдаст ей в нужный момент.")
     await state.set_state(PastLetterStates.waiting_text)
 
-
 @dp.message(PastLetterStates.waiting_text)
 async def admin_past_letter_text(message: Message, state: FSMContext):
     if message.from_user.id != YOUR_ID:
         return
     await state.update_data(text=message.text)
-    await message.answer(
-        "💌 Когда отдать?\n\n"
-        "Дата <b>ГГГГ-ММ-ДД</b> (например <code>2027-01-01</code>)",
-        parse_mode=ParseMode.HTML,
-    )
+    await message.answer("💌 Когда отдать?\n\nДата <b>ГГГГ-ММ-ДД</b> (например <code>2027-01-01</code>)", parse_mode=ParseMode.HTML)
     await state.set_state(PastLetterStates.waiting_trigger)
-
 
 @dp.message(PastLetterStates.waiting_trigger)
 async def admin_past_letter_trigger(message: Message, state: FSMContext):
@@ -1152,10 +923,10 @@ async def admin_past_letter_trigger(message: Message, state: FSMContext):
     save_db(db)
     await message.answer(f"✅ Сохранено! Триггер: <b>{trigger}</b>", parse_mode=ParseMode.HTML, reply_markup=menu_admin())
     await state.clear()
-
+    
 
 # ============================================================
-# АВТО-РАССЫЛКА + ПРОВЕРКА ПИСЕМ
+# АВТО-РАССЫЛКА
 # ============================================================
 async def send_daily():
     morning_sent = None
@@ -1168,11 +939,9 @@ async def send_daily():
         try:
             now = datetime.now()
             current_date = now.date()
-
             if current_date != today:
                 morning_sent = day_sent = night_sent = sleep_sent = None
                 today = current_date
-
             hh_mm = now.strftime("%H:%M")
 
             if hh_mm == MORNING_TIME and morning_sent != today:
@@ -1203,7 +972,6 @@ async def send_daily():
                 except Exception as e:
                     print(f"Ошибка сна: {e}")
 
-            # проверка писем
             try:
                 db = load_db()
                 letters = db.get("letters", [])
@@ -1244,10 +1012,8 @@ async def send_daily():
                     save_db(db)
             except Exception as e:
                 print(f"Ошибка проверки писем: {e}")
-
         except Exception as e:
             print(f"Ошибка в send_daily: {e}")
-
         await asyncio.sleep(30)
 
 
@@ -1268,6 +1034,55 @@ async def start_webserver():
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
     print(f"✅ Веб-сервер на порту {port}")
+
+
+# ============================================================
+# FALLBACK — В САМОМ КОНЦЕ! (это критично)
+# ============================================================
+@dp.message(F.text)
+async def handle_text_fallback(message: Message, state: FSMContext):
+    """Ловит текстовые сообщения, НЕ попавшие под кнопки"""
+
+    # ЕСЛИ ЭТО ТЫ
+    if message.from_user.id == YOUR_ID:
+        text = message.text.strip()
+
+        # проверка на имя (комплимент) — только короткие буквы
+        if 2 <= len(text) <= 20 and text.replace(" ", "").isalpha():
+            await message.answer(name_compliment(text), parse_mode=ParseMode.HTML)
+            return
+
+        # если ты просто пишешь текст — отправляем ЕЙ
+        if HER_ID != 0:
+            try:
+                await bot.send_message(HER_ID, f"💌 {text}")
+                await message.answer("✅ Отправлено ей! (или жми кнопки админ-меню)", reply_markup=menu_admin())
+                return
+            except Exception as e:
+                await message.answer(f"❌ Не смог отправить ей: {e}", reply_markup=menu_admin())
+                return
+
+        await message.answer("👑 Жми кнопки 👇", reply_markup=menu_admin())
+        return
+
+    # ЭТО ОНА — зеркало
+    add_stat(message.from_user.id, "messages")
+    try:
+        keyboard = ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text="✍️ Ответить")]],
+            resize_keyboard=True,
+        )
+        await bot.send_message(
+            YOUR_ID,
+            f"💌 <b>Она написала:</b>\n\n{message.text}\n\n"
+            f"Просто напиши ответ — я отправлю ей.",
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+        )
+        await message.answer("💭 Я передал ему. Он скоро ответит 💕")
+    except Exception as e:
+        print(f"Ошибка зеркала: {e}")
+        await message.answer("Не понял 🤔 Жми кнопки 👇", reply_markup=main_menu())
 
 
 # ============================================================
