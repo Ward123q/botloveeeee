@@ -1089,7 +1089,7 @@ async def handle_text_fallback(message: Message, state: FSMContext):
 # MAIN
 # ============================================================
 async def main():
-     await bot.delete_webhook(drop_pending_updates=True)
+    await bot.delete_webhook(drop_pending_updates=True)
     asyncio.create_task(start_webserver())
     asyncio.create_task(send_daily())
     print("🚀 Бот запущен!")
